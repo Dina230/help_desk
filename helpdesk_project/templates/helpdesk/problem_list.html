@@ -1,0 +1,67 @@
+{% extends 'helpdesk/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Проблемы</h1>
+        
+        <!-- Поиск -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Поиск</label>
+                        {{ search_form.query }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Направление</label>
+                        {{ search_form.direction }}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Найти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Список проблем -->
+        <div class="row">
+            {% for problem in problems %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="badge bg-info">{{ problem.direction.display_name }}</span>
+                            <small class="text-muted float-end">{{ problem.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'problem_detail' problem.pk %}" class="text-decoration-none">
+                                    {{ problem.title }}
+                                </a>
+                            </h5>
+                            <p class="card-text">{{ problem.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    Автор: {{ problem.author.username }} | 
+                                    Решений: {{ problem.solutions.count }}
+                                </small>
+                                {% if problem.solutions.all %}
+                                    {% with accepted=problem.solutions.all|dictsort:"is_accepted"|last %}
+                                        {% if accepted.is_accepted %}
+                                            <span class="badge bg-success">Есть решение</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">Проблем не найдено</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

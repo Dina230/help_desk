@@ -1,0 +1,54 @@
+{% extends 'helpdesk/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4>Подтверждение удаления</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    Вы действительно хотите удалить сотрудника <strong>{{ employee.username }}</strong>?
+                </p>
+                
+                <div class="alert alert-warning">
+                    <strong>Внимание!</strong> Это действие нельзя отменить. 
+                    Все связанные данные (проблемы, решения) будут также удалены.
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6>Информация о сотруднике:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Имя пользователя:</strong> {{ employee.username }}</li>
+                            <li><strong>ФИО:</strong> {{ employee.last_name }} {{ employee.first_name }}</li>
+                            <li><strong>Email:</strong> {{ employee.email }}</li>
+                            <li><strong>Дата регистрации:</strong> {{ employee.date_joined|date:"d.m.Y H:i" }}</li>
+                            <li><strong>Статус:</strong> 
+                                {% if employee.is_active %}
+                                    <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Неактивен</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            Да, удалить сотрудника
+                        </button>
+                        <a href="{% url 'employee_list' %}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

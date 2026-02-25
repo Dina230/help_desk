@@ -1,0 +1,69 @@
+{% extends 'helpdesk/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            Пожалуйста, исправьте ошибки в форме
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.direction.label }}</label>
+                        {{ form.direction }}
+                        {% if form.direction.errors %}
+                            <div class="text-danger">{{ form.direction.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        <small class="text-muted">Максимум 300 символов</small>
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.files.label }}</label>
+                        {{ form.files }}
+                        <small class="text-muted">Можно выбрать несколько файлов (макс. 10МБ каждый)</small>
+                        {% if form.files.errors %}
+                            <div class="text-danger">{{ form.files.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            {% if title == 'Создание проблемы' %}
+                                Создать проблему
+                            {% else %}
+                                Сохранить изменения
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'problem_list' %}" class="btn btn-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'helpdesk/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Управление сотрудниками</h1>
+    <a href="{% url 'employee_create' %}" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> Добавить сотрудника
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя пользователя</th>
+                        <th>ФИО</th>
+                        <th>Email</th>
+                        <th>Дата регистрации</th>
+                        <th>Статус</th>
+                        <th>Права</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.id }}</td>
+                        <td><strong>{{ employee.username }}</strong></td>
+                        <td>{{ employee.last_name }} {{ employee.first_name }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.date_joined|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            {% if employee.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                            {% else %}
+                                <span class="badge bg-danger">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if employee.is_superuser %}
+                                <span class="badge bg-danger">Администратор</span>
+                            {% elif employee.is_staff %}
+                                <span class="badge bg-warning text-dark">Редактор</span>
+                            {% else %}
+                                <span class="badge bg-info">Пользователь</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'employee_edit' employee.pk %}" 
+                                   class="btn btn-outline-primary" 
+                                   title="Редактировать">
+                                    ✏️
+                                </a>
+                                
+                                {% if employee.is_active %}
+                                    <a href="{% url 'employee_toggle_active' employee.pk %}" 
+                                       class="btn btn-outline-warning"
+                                       title="Деактивировать"
+                                       onclick="return confirm('Деактивировать сотрудника {{ employee.username }}?')">
+                                        🔒
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'employee_toggle_active' employee.pk %}" 
+                                       class="btn btn-outline-success"
+                                       title="Активировать">
+                                        🔓
+                                    </a>
+                                {% endif %}
+                                
+                                {% if not employee.is_superuser and employee != request.user %}
+                                    <a href="{% url 'employee_delete' employee.pk %}" 
+                                       class="btn btn-outline-danger"
+                                       title="Удалить">
+                                        🗑️
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Всего сотрудников</h5>
+                <p class="card-text display-6">{{ employees.count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Активных</h5>
+                <p class="card-text display-6">{{ employees.active.count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Редакторов</h5>
+                <p class="card-text display-6">{{ employees.staff.count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Админов</h5>
+                <p class="card-text display-6">{{ employees.superuser.count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

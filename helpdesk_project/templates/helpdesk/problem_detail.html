@@ -1,0 +1,124 @@
+{% extends 'helpdesk/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Проблема -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>{{ problem.title }}</h4>
+                <span class="badge bg-info">{{ problem.direction.display_name }}</span>
+                <small class="text-muted float-end">
+                    Автор: {{ problem.author.username }} |
+                    Создано: {{ problem.created_at|date:"d.m.Y H:i" }}
+                </small>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ problem.description }}</p>
+
+                {% if problem.files.all %}
+                    <hr>
+                    <h6>Прикрепленные файлы:</h6>
+                    <ul class="list-unstyled">
+                        {% for file in problem.files.all %}
+                            <li>
+                                <a href="{{ file.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary mb-1">
+                                    {{ file.filename }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if user.is_staff %}
+                    <a href="{% url 'problem_edit' problem.pk %}" class="btn btn-warning mt-3">
+                        Редактировать
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Решения -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Решения</h5>
+            </div>
+            <div class="card-body">
+                {% for solution in problem.solutions.all %}
+                    <div class="border-bottom mb-3 pb-3 {% if solution.is_accepted %}border-success border-3{% endif %}">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ solution.author.username }}</strong>
+                            <small class="text-muted">{{ solution.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <p class="mt-2">{{ solution.description }}</p>
+
+                        {% if solution.files.all %}
+                            <h6>Файлы:</h6>
+                            <ul class="list-unstyled">
+                                {% for file in solution.files.all %}
+                                    <li>
+                                        <a href="{{ file.file.url }}" target="_blank" class="btn btn-sm btn-outline-success mb-1">
+                                            {{ file.filename }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if user == problem.author and not solution.is_accepted %}
+                            <a href="{% url 'accept_solution' problem.pk solution.pk %}"
+                               class="btn btn-sm btn-success mt-2">
+                                Отметить как решение
+                            </a>
+                        {% endif %}
+
+                        {% if solution.is_accepted %}
+                            <span class="badge bg-success">Принятое решение</span>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted">Пока нет решений</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма добавления решения (только для авторизованных) -->
+    <div class="col-md-4">
+        {% if user.is_authenticated %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Добавить решение</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Описание решения (макс. 800 символов)</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Прикрепить файлы</label>
+                            {{ form.files }}
+                            <small class="text-muted">Можно выбрать несколько файлов</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Отправить решение
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <a href="{% url 'login' %}">Войдите</a>, чтобы добавить решение
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
