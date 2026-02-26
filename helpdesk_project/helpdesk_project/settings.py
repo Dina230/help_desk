@@ -14,7 +14,28 @@ SECRET_KEY = 'django-insecure-ob!v_!^3!-3e+1%rp3od$3)2-dsbb^jcx09iwxq#992q2fp5+)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ВСЕ IP-адреса в вашей сети 10.1.86.x
+ALLOWED_HOSTS = [
+    # Локальные адреса
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+
+    # Ваш компьютер
+    '10.1.86.12',
+
+    # Другие компьютеры в сети (добавлены все указанные)
+    '10.1.86.104',
+    '10.1.86.133',
+    '10.1.86.102',
+
+    # Диапазон всей сети (опционально)
+    # '10.1.86.*',
+    # '10.1.86.0/24',
+
+    # ВРЕМЕННО: для тестирования (потом уберите)
+    '*',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -24,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'helpdesk',  # Добавляем наше приложение
+    'helpdesk',
 ]
 
 MIDDLEWARE = [
@@ -42,7 +63,7 @@ ROOT_URLCONF = 'helpdesk_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Добавляем папку templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,14 +103,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'ru-ru'  # Меняем на русский
-TIME_ZONE = 'Europe/Moscow'  # Меняем часовой пояс
+LANGUAGE_CODE = 'ru-ru'
+TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']  # Добавляем папку для статических файлов
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
@@ -103,3 +126,47 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# CSRF Trusted Origins - добавляем все IP для работы форм
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://10.1.86.12:8000',
+    'http://10.1.86.104:8000',
+    'http://10.1.86.133:8000',
+    'http://10.1.86.102:8000',
+]
+
+# CORS settings (если нужны)
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://10.1.86.12:8000',
+    'http://10.1.86.104:8000',
+    'http://10.1.86.133:8000',
+    'http://10.1.86.102:8000',
+]
+
+# CORS_ALLOW_ALL_ORIGINS = True  # Только для разработки!
+
+# Session settings
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_AGE = 1209600  # 2 недели
+SESSION_SAVE_EVERY_REQUEST = True
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
+
+# Security settings for development
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+
+# Настройки для статических файлов в режиме разработки
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)
+    mimetypes.add_type("text/css", ".css", True)

@@ -5,65 +5,415 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h4>{{ title }}</h4>
+                <h4 class="mb-0">
+                    <i class="fas {% if title == 'Создание проблемы' %}fa-plus-circle{% else %}fa-edit{% endif %} me-2 text-primary-custom"></i>
+                    {{ title }}
+                </h4>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="problemForm">
                     {% csrf_token %}
-                    
+
                     {% if form.errors %}
                         <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
                             Пожалуйста, исправьте ошибки в форме
                         </div>
                     {% endif %}
-                    
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.title.label }}</label>
+
+                    <!-- Заголовок -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-heading me-2 text-primary-custom"></i>{{ form.title.label }}
+                        </label>
                         {{ form.title }}
                         {% if form.title.errors %}
-                            <div class="text-danger">{{ form.title.errors }}</div>
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ form.title.errors }}
+                            </div>
                         {% endif %}
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.direction.label }}</label>
+
+                    <!-- Направление -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-tag me-2 text-primary-custom"></i>{{ form.direction.label }}
+                        </label>
                         {{ form.direction }}
                         {% if form.direction.errors %}
-                            <div class="text-danger">{{ form.direction.errors }}</div>
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ form.direction.errors }}
+                            </div>
                         {% endif %}
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.description.label }}</label>
+
+                    <!-- Описание -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-align-left me-2 text-primary-custom"></i>{{ form.description.label }}
+                        </label>
                         {{ form.description }}
-                        <small class="text-muted">Максимум 300 символов</small>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1 text-primary-custom"></i>
+                                Максимум 300 символов
+                            </small>
+                            <small class="text-muted">
+                                <span id="charCount">0</span>/300
+                            </small>
+                        </div>
                         {% if form.description.errors %}
-                            <div class="text-danger">{{ form.description.errors }}</div>
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ form.description.errors }}
+                            </div>
                         {% endif %}
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.files.label }}</label>
-                        {{ form.files }}
-                        <small class="text-muted">Можно выбрать несколько файлов (макс. 10МБ каждый)</small>
+
+                    <!-- Красивое добавление файлов -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-paperclip me-2 text-primary-custom"></i>{{ form.files.label }}
+                        </label>
+
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <input type="file"
+                                   name="files"
+                                   id="fileInput"
+                                   class="file-input"
+                                   multiple
+                                   accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx,.txt,.xls,.xlsx">
+
+                            <div class="file-upload-content">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--primary); opacity: 0.7;"></i>
+                                <h5 class="mb-2">Перетащите файлы сюда или кликните для выбора</h5>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-info-circle me-1 text-primary-custom"></i>
+                                    Поддерживаются: JPG, PNG, PDF, DOC, XLS (макс. 10МБ)
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Список выбранных файлов -->
+                        <div class="file-list mt-3" id="fileList"></div>
+
                         {% if form.files.errors %}
-                            <div class="text-danger">{{ form.files.errors }}</div>
+                            <div class="text-danger mt-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ form.files.errors }}
+                            </div>
                         {% endif %}
                     </div>
-                    
+
+                    <!-- Кнопки -->
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">
+                            <i class="fas {% if title == 'Создание проблемы' %}fa-plus-circle{% else %}fa-save{% endif %} me-2"></i>
                             {% if title == 'Создание проблемы' %}
                                 Создать проблему
                             {% else %}
                                 Сохранить изменения
                             {% endif %}
                         </button>
-                        <a href="{% url 'problem_list' %}" class="btn btn-secondary">Отмена</a>
+                        <a href="{% url 'problem_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Отмена
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Стили для красивой загрузки файлов */
+    .file-upload-area {
+        position: relative;
+        border: 2px dashed var(--border);
+        border-radius: 12px;
+        background-color: var(--white);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--primary);
+        background-color: rgba(128, 0, 32, 0.02);
+    }
+
+    .file-upload-area.dragover {
+        border-color: var(--primary);
+        background-color: rgba(128, 0, 32, 0.05);
+        transform: scale(1.02);
+    }
+
+    .file-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    .file-upload-content {
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    /* Стили для списка файлов */
+    .file-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border-radius: 8px;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background-color: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        animation: slideIn 0.3s ease;
+    }
+
+    .file-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .file-item:hover {
+        border-color: var(--primary);
+        background-color: rgba(128, 0, 32, 0.02);
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(128, 0, 32, 0.1);
+        color: var(--primary);
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .file-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .file-size {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .file-remove {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .file-remove:hover {
+        color: var(--primary);
+        background-color: rgba(128, 0, 32, 0.1);
+    }
+
+    /* Анимации */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Счетчик символов */
+    #charCount {
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .file-upload-content {
+            padding: 1.5rem 1rem;
+        }
+
+        .file-upload-content h5 {
+            font-size: 1rem;
+        }
+
+        .file-upload-content p {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadArea = document.getElementById('fileUploadArea');
+        const descriptionInput = document.querySelector('textarea[name="description"]');
+        const charCount = document.getElementById('charCount');
+
+        // Счетчик символов для описания
+        if (descriptionInput) {
+            descriptionInput.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+
+                // Изменяем цвет при приближении к лимиту
+                if (this.value.length > 250) {
+                    charCount.style.color = '#f1c40f';
+                } else if (this.value.length > 280) {
+                    charCount.style.color = '#e74c3c';
+                } else {
+                    charCount.style.color = 'var(--primary)';
+                }
+            });
+
+            // Инициализация счетчика
+            charCount.textContent = descriptionInput.value.length;
+        }
+
+        // Drag and drop эффекты
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function() {
+            this.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        // Клик по области загрузки
+        uploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // Изменение файлов
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        // Функция обработки файлов
+        function handleFiles(files) {
+            fileList.innerHTML = '';
+
+            if (files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                addFileToList(file);
+            }
+        }
+
+        // Функция добавления файла в список
+        function addFileToList(file) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+
+            // Определяем иконку для типа файла
+            let fileIcon = 'fa-file';
+            if (file.type.startsWith('image/')) {
+                fileIcon = 'fa-file-image';
+            } else if (file.type.includes('pdf')) {
+                fileIcon = 'fa-file-pdf';
+            } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                fileIcon = 'fa-file-word';
+            } else if (file.type.includes('excel') || file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                fileIcon = 'fa-file-excel';
+            } else if (file.type.includes('text')) {
+                fileIcon = 'fa-file-alt';
+            }
+
+            // Форматируем размер файла
+            const fileSize = formatFileSize(file.size);
+
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <div class="file-icon">
+                        <i class="fas ${fileIcon}"></i>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${fileSize}</div>
+                    </div>
+                </div>
+                <button type="button" class="file-remove" onclick="removeFile(this, '${file.name}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            fileList.appendChild(fileItem);
+        }
+
+        // Функция форматирования размера файла
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Б';
+
+            const k = 1024;
+            const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Функция удаления файла
+        window.removeFile = function(button, fileName) {
+            const fileItem = button.closest('.file-item');
+            fileItem.remove();
+
+            // Создаем новый FileList без удаленного файла
+            const dataTransfer = new DataTransfer();
+            const files = fileInput.files;
+
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].name !== fileName) {
+                    dataTransfer.items.add(files[i]);
+                }
+            }
+
+            fileInput.files = dataTransfer.files;
+        };
+    });
+</script>
 {% endblock %}

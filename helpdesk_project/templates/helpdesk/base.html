@@ -4,50 +4,616 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Help Desk{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Favicon -->
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Бордово-белая минималистичная палитра */
+        :root {
+            --primary: #800020; /* Бордовый */
+            --primary-dark: #4a0012; /* Темно-бордовый */
+            --primary-light: #a52a2a; /* Светло-бордовый */
+            --white: #ffffff; /* Белый */
+            --gray-50: #fafafa; /* Светло-серый */
+            --gray-100: #f5f5f5;
+            --gray-200: #eeeeee;
+            --gray-300: #e0e0e0;
+            --gray-400: #bdbdbd;
+            --gray-500: #9e9e9e;
+            --gray-600: #757575;
+            --gray-700: #616161;
+            --gray-800: #424242;
+            --gray-900: #212121;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-50);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Навигация - белая с бордовым акцентом */
+        .navbar {
+            background-color: var(--white) !important;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .navbar-brand {
+            color: var(--text-primary) !important;
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: -0.3px;
+            transition: color 0.2s ease;
+        }
+
+        .navbar-brand:hover {
+            color: var(--primary) !important;
+        }
+
+        .navbar-brand i {
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            border-radius: 6px;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+            background-color: rgba(128, 0, 32, 0.03);
+        }
+
+        .nav-link i {
+            color: var(--primary);
+            margin-right: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        /* Бейджи */
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.bg-danger {
+            background-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        .badge.bg-warning {
+            background-color: #f1c40f !important;
+            color: var(--text-primary) !important;
+        }
+
+        .badge.bg-success {
+            background-color: #27ae60 !important;
+            color: white !important;
+        }
+
+        .badge.bg-secondary {
+            background-color: var(--gray-300) !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .badge.bg-info {
+            background-color: #3498db !important;
+            color: white !important;
+        }
+
+        /* Выпадающее меню */
+        .dropdown-menu {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            min-width: 240px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .dropdown-item {
+            color: var(--text-secondary);
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(128, 0, 32, 0.05);
+            color: var(--primary);
+        }
+
+        .dropdown-item i {
+            color: var(--primary);
+            margin-right: 0.5rem;
+            width: 1.2rem;
+        }
+
+        .dropdown-divider {
+            border-top-color: var(--border);
+        }
+
+        .dropdown-item-text {
+            color: var(--text-primary);
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Алерты */
+        .alert {
+            border: none;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: var(--white);
+            border-left: 3px solid var(--primary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .alert-success {
+            border-left-color: #27ae60;
+        }
+
+        .alert-danger {
+            border-left-color: var(--primary);
+        }
+
+        .alert-warning {
+            border-left-color: #f1c40f;
+        }
+
+        .alert-info {
+            border-left-color: #3498db;
+        }
+
+        .btn-close {
+            opacity: 0.5;
+        }
+
+        .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Карточки */
+        .card {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(128, 0, 32, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .card-footer {
+            background-color: transparent;
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .card-title a:hover {
+            color: var(--primary);
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Кнопки */
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1.2rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
+        }
+
+        .btn-outline-primary {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
+        }
+
+        .btn-outline-secondary {
+            background-color: transparent;
+            border: 1px solid var(--gray-300);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--gray-100);
+            color: var(--text-primary);
+            border-color: var(--gray-400);
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* Формы */
+        .form-control, .form-select {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: var(--gray-400);
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+
+        .input-group-text {
+            background-color: var(--gray-50);
+            border: 1px solid var(--border);
+            border-right: none;
+            color: var(--primary);
+            border-radius: 8px 0 0 8px;
+        }
+
+        /* Таблицы */
+        .table {
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        .table thead th {
+            background-color: var(--gray-50);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+        }
+
+        .table td {
+            color: var(--text-secondary);
+            border-color: var(--border);
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(128, 0, 32, 0.02);
+        }
+
+        /* Пагинация */
+        .pagination {
+            gap: 5px;
+        }
+
+        .page-link {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .page-link:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .page-item.disabled .page-link {
+            background-color: var(--gray-50);
+            border-color: var(--border);
+            color: var(--gray-400);
+        }
+
+        /* Ссылки */
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Текст */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-primary);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Границы */
+        .border {
+            border-color: var(--border) !important;
+        }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Утилиты */
+        .bg-white-custom {
+            background-color: var(--white);
+        }
+
+        .bg-primary-custom {
+            background-color: var(--primary);
+        }
+
+        .text-primary-custom {
+            color: var(--primary);
+        }
+
+        .border-primary-custom {
+            border-color: var(--primary);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        /* Дополнительные минималистичные элементы */
+        .divider {
+            height: 1px;
+            background-color: var(--border);
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'problem_list' %}">Help Desk</a>
+            <a class="navbar-brand" href="{% url 'problem_list' %}">
+                <i class="fas fa-headset"></i>
+                HELP DESK
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'problem_list' %}">Проблемы</a>
+                        <a class="nav-link" href="{% url 'problem_list' %}">
+                            <i class="fas fa-list"></i>
+                            Проблемы
+                        </a>
                     </li>
                     {% if user.is_superuser %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'employee_list' %}">Сотрудники</a>
+                            <a class="nav-link" href="{% url 'employee_list' %}">
+                                <i class="fas fa-users"></i>
+                                Сотрудники
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'problem_create' %}">Новая проблема</a>
+                            <a class="nav-link" href="{% url 'problem_create' %}">
+                                <i class="fas fa-plus-circle"></i>
+                                Новая
+                            </a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
                                 {{ user.username }}
                                 {% if user.is_superuser %}
-                                    <span class="badge bg-danger">Админ</span>
+                                    <span class="badge bg-danger ms-1">Админ</span>
                                 {% elif user.is_staff %}
-                                    <span class="badge bg-warning text-dark">Редактор</span>
+                                    <span class="badge bg-warning ms-1">Ред</span>
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><span class="dropdown-item-text text-muted">
-                                    {{ user.last_name }} {{ user.first_name }}
-                                </span></li>
+                                <li>
+                                    <span class="dropdown-item-text">
+                                        <i class="fas fa-id-card"></i>
+                                        {{ user.last_name }} {{ user.first_name }}
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="dropdown-item-text">
+                                        <i class="fas fa-envelope"></i>
+                                        {{ user.email|default:"—" }}
+                                    </span>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                    <form method="post" action="{% url 'logout' %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="dropdown-item" style="border: none; background: none; width: 100%; text-align: left;">
-                                            Выход
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                            Выйти
                                         </button>
                                     </form>
                                 </li>
@@ -55,7 +621,10 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Вход
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -63,12 +632,14 @@
         </div>
     </nav>
 
+    <!-- Основной контент -->
     <div class="container mt-4">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         {% endif %}
@@ -77,6 +648,27 @@
         {% endblock %}
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Анимация появления
+            const animatedElements = document.querySelectorAll('.card, .alert, .stat-card');
+            animatedElements.forEach((el, index) => {
+                el.classList.add('fade-in');
+                el.style.animationDelay = `${index * 0.05}s`;
+            });
+
+            // Авто-скрытие алертов
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>

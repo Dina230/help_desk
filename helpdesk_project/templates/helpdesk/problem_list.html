@@ -1,67 +1,414 @@
 {% extends 'helpdesk/base.html' %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h1 class="mb-4">Проблемы</h1>
-        
-        <!-- Поиск -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form method="get" class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Поиск</label>
-                        {{ search_form.query }}
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Направление</label>
-                        {{ search_form.direction }}
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Найти</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-list me-2 text-primary-custom"></i>Проблемы
+        </h1>
+        {% if user.is_authenticated %}
+            <a href="{% url 'problem_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Новая проблема
+            </a>
+        {% endif %}
+    </div>
 
-        <!-- Список проблем -->
-        <div class="row">
-            {% for problem in problems %}
-                <div class="col-md-6 mb-3">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="badge bg-info">{{ problem.direction.display_name }}</span>
-                            <small class="text-muted float-end">{{ problem.created_at|date:"d.m.Y H:i" }}</small>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="{% url 'problem_detail' problem.pk %}" class="text-decoration-none">
-                                    {{ problem.title }}
-                                </a>
-                            </h5>
-                            <p class="card-text">{{ problem.description|truncatechars:100 }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    Автор: {{ problem.author.username }} | 
-                                    Решений: {{ problem.solutions.count }}
-                                </small>
-                                {% if problem.solutions.all %}
-                                    {% with accepted=problem.solutions.all|dictsort:"is_accepted"|last %}
-                                        {% if accepted.is_accepted %}
-                                            <span class="badge bg-success">Есть решение</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                {% endif %}
-                            </div>
+    <!-- Форма поиска -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" id="searchForm">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label">
+                            <i class="fas fa-search me-2 text-primary-custom"></i>Поиск по тексту
+                        </label>
+                        <input type="text"
+                               name="query"
+                               class="form-control"
+                               placeholder="Введите слово для поиска..."
+                               value="{{ request.GET.query|default:'' }}">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1 text-primary-custom"></i>
+                            Поиск по заголовку и описанию
+                        </small>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-tag me-2 text-primary-custom"></i>Направление
+                        </label>
+                        <select name="direction" class="form-select">
+                            <option value="">Все направления</option>
+                            {% for direction in search_form.fields.direction.queryset %}
+                                <option value="{{ direction.id }}" {% if request.GET.direction|stringformat:"s" == direction.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ direction.display_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Найти
+                            </button>
                         </div>
                     </div>
                 </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info">Проблем не найдено</div>
-                </div>
-            {% endfor %}
+            </form>
         </div>
     </div>
+
+<!-- Результаты поиска -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">
+        <i class="fas fa-list-ul me-2 text-primary-custom"></i>
+        Найдено: <span class="badge" style="background-color: var(--primary); color: white;">{{ problems.paginator.count }}</span>
+    </h5>
+    {% if request.GET.query or request.GET.direction %}
+        <a href="{% url 'problem_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-times me-2"></i>Сбросить фильтры
+        </a>
+    {% endif %}
 </div>
+
+    <!-- Список проблем -->
+    <div class="row g-4">
+        {% for problem in problems %}
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-primary-custom">
+                                {{ problem.direction.display_name }}
+                            </span>
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>{{ problem.created_at|date:"d.m.Y H:i" }}
+                            </small>
+                        </div>
+
+                        <h5 class="card-title">
+                            <a href="{% url 'problem_detail' problem.pk %}" class="text-decoration-none">
+                                {{ problem.title }}
+                            </a>
+                        </h5>
+
+                        <p class="card-text">
+                            {{ problem.description|truncatechars:150 }}
+                        </p>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1 text-primary-custom"></i>{{ problem.author.username }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-comments me-1 text-primary-custom"></i>{{ problem.solutions.count }}
+                                </small>
+                            </div>
+
+                            {% if problem.solutions.all %}
+                                {% with accepted=problem.solutions.all|dictsort:"is_accepted"|last %}
+                                    {% if accepted.is_accepted %}
+                                        <span class="badge bg-success">Решено</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">В процессе</span>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <span class="badge bg-secondary">Нет решений</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'problem_detail' problem.pk %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-eye me-2"></i>Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Проблем не найдено</h4>
+                        <p class="text-muted mb-4">Попробуйте изменить параметры поиска</p>
+                        <a href="{% url 'problem_list' %}" class="btn btn-primary">
+                            <i class="fas fa-undo me-2"></i>Показать все
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+<!-- Пагинация -->
+{% if problems.paginator.num_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if problems.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{{ params }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ problems.previous_page_number }}{{ params }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in problems.paginator.page_range %}
+                {% if problems.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > problems.number|add:'-3' and num < problems.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{{ params }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if problems.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ problems.next_page_number }}{{ params }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ problems.paginator.num_pages }}{{ params }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+</div>
+
+<style>
+    /* Переопределяем цвета под бордово-белую тему */
+    .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        background-color: var(--white);
+    }
+
+    .card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px rgba(128, 0, 32, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .card-title a {
+        color: var(--text-primary);
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+
+    .card-title a:hover {
+        color: var(--primary);
+    }
+
+    .card-text {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .card-footer {
+        background-color: transparent;
+        border-top: 1px solid var(--border);
+        padding: 1rem;
+    }
+
+    .badge.bg-primary-custom {
+        background-color: var(--primary);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        letter-spacing: 0.3px;
+    }
+
+    .badge.bg-success {
+        background-color: #27ae60 !important;
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+
+    .badge.bg-warning {
+        background-color: #f1c40f !important;
+        color: var(--text-primary);
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+
+    .badge.bg-secondary {
+        background-color: var(--gray-300) !important;
+        color: var(--text-secondary);
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1);
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border: none;
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
+    }
+
+    .btn-outline-primary {
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        background-color: transparent;
+        padding: 0.5rem;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .btn-outline-secondary {
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        background-color: transparent;
+        padding: 0.4rem 1rem;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: var(--gray-100);
+        border-color: var(--gray-400);
+        color: var(--text-primary);
+    }
+
+    .btn-sm {
+        font-size: 0.85rem;
+    }
+
+    .text-muted {
+        color: var(--text-secondary) !important;
+    }
+
+    .text-primary-custom {
+        color: var(--primary) !important;
+    }
+
+    .page-link {
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        margin: 0 2px;
+    }
+
+    .page-link:hover {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h4 {
+        font-size: 1.25rem;
+    }
+
+    h5 {
+        font-size: 1rem;
+    }
+
+    .form-label {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    small {
+        font-size: 0.85rem;
+    }
+
+    .fa-4x {
+        font-size: 3rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+    }
+</style>
+
+<script>
+    function clearSearch() {
+        window.location.href = "{% url 'problem_list' %}";
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('input[name="query"]');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('searchForm').submit();
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

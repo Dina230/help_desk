@@ -5,7 +5,8 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.core.paginator import Paginator
 from .models import Problem, Direction, Solution, ProblemFile, SolutionFile
 from .forms import ProblemForm, SolutionForm, SearchForm, EmployeeCreationForm
 
@@ -31,27 +32,67 @@ def login_view(request):
 
 
 def problem_list(request):
-    form = SearchForm(request.GET or None)
+    # Получаем параметры напрямую из GET запроса
+    query = request.GET.get('query', '')
+    direction_id = request.GET.get('direction', '')
+    page = request.GET.get('page', 1)
+
+    # Для отладки
+    print(f"GET parameters: {request.GET}")
+    print(f"Query: '{query}', Direction ID: '{direction_id}'")
+
+    # Базовый queryset
     problems = Problem.objects.all()
 
-    if form.is_valid():
-        query = form.cleaned_data.get('query')
-        direction = form.cleaned_data.get('direction')
+    # Применяем фильтры
+    if query:
+        # Разбиваем запрос на слова
+        words = query.split()
+        print(f"Search words: {words}")
 
-        if query:
-            problems = problems.filter(
-                Q(title__icontains=query) |
-                Q(description__icontains=query)
-            )
+        q_objects = Q()
+        for word in words:
+            # icontains ищет без учета регистра
+            q_objects |= Q(title__icontains=word) | Q(description__icontains=word)
 
-        if direction:
-            problems = problems.filter(direction=direction)
+        problems = problems.filter(q_objects)
+        print(f"Problems after search: {problems.count()}")
 
+    if direction_id:
+        try:
+            direction_id = int(direction_id)
+            problems = problems.filter(direction_id=direction_id)
+            print(f"Filtered by direction {direction_id}: {problems.count()}")
+        except ValueError:
+            pass
+
+    # Сортировка по умолчанию
+    problems = problems.order_by('-created_at')
+
+    # Оптимизация запросов
     problems = problems.select_related('author', 'direction').prefetch_related('solutions')
 
+    # Пагинация
+    paginator = Paginator(problems, 6)  # 6 проблем на странице
+    problems_page = paginator.get_page(page)
+
+    # Создаем форму для отображения
+    form = SearchForm(initial={
+        'query': query,
+        'direction': direction_id if direction_id else None
+    })
+
+    # Параметры для пагинации
+    params = ''
+    if query:
+        params += f'&query={query}'
+    if direction_id:
+        params += f'&direction={direction_id}'
+
     return render(request, 'helpdesk/problem_list.html', {
-        'problems': problems,
-        'search_form': form
+        'problems': problems_page,
+        'search_form': form,
+        'params': params,
     })
 
 
