@@ -203,9 +203,26 @@ def accept_solution(request, problem_pk, solution_pk):
 # Административные функции для управления сотрудниками
 @user_passes_test(is_admin)
 def employee_list(request):
-    employees = User.objects.all().order_by('-date_joined')
+    # Получаем всех сотрудников с сортировкой по дате регистрации (новые сверху)
+    employees_list = User.objects.all().order_by('-date_joined')
+
+    # Пагинация - 10 сотрудников на странице
+    paginator = Paginator(employees_list, 5)
+    page_number = request.GET.get('page')
+    employees = paginator.get_page(page_number)
+
+    # Подсчет статистики для карточек
+    total_count = User.objects.count()
+    active_count = User.objects.filter(is_active=True).count()
+    staff_count = User.objects.filter(is_staff=True).count()
+    superuser_count = User.objects.filter(is_superuser=True).count()
+
     return render(request, 'helpdesk/employee_list.html', {
-        'employees': employees
+        'employees': employees,
+        'total_count': total_count,
+        'active_count': active_count,
+        'staff_count': staff_count,
+        'superuser_count': superuser_count,
     })
 
 

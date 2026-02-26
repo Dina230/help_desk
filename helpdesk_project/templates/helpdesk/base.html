@@ -22,11 +22,11 @@
     <style>
         /* Бордово-белая минималистичная палитра */
         :root {
-            --primary: #800020; /* Бордовый */
-            --primary-dark: #4a0012; /* Темно-бордовый */
-            --primary-light: #a52a2a; /* Светло-бордовый */
-            --white: #ffffff; /* Белый */
-            --gray-50: #fafafa; /* Светло-серый */
+            --primary: #800020;
+            --primary-dark: #4a0012;
+            --primary-light: #a52a2a;
+            --white: #ffffff;
+            --gray-50: #fafafa;
             --gray-100: #f5f5f5;
             --gray-200: #eeeeee;
             --gray-300: #e0e0e0;
@@ -55,7 +55,7 @@
             line-height: 1.6;
         }
 
-        /* Навигация - белая с бордовым акцентом */
+        /* Навигация */
         .navbar {
             background-color: var(--white) !important;
             border-bottom: 1px solid var(--border);
@@ -100,6 +100,23 @@
             font-size: 0.9rem;
         }
 
+        /* Активная ссылка */
+        .nav-link.active,
+        .navbar-nav .nav-link.active,
+        .nav-item .nav-link.active,
+        .nav-link[aria-current="page"] {
+            color: var(--primary) !important;
+            background-color: rgba(128, 0, 32, 0.05);
+            font-weight: 600;
+        }
+
+        .nav-link.active i,
+        .navbar-nav .nav-link.active i,
+        .nav-item .nav-link.active i,
+        .nav-link[aria-current="page"] i {
+            color: var(--primary) !important;
+        }
+
         /* Бейджи */
         .badge {
             padding: 0.3rem 0.8rem;
@@ -109,7 +126,7 @@
             letter-spacing: 0.3px;
         }
 
-        .badge.bg-danger {
+        .badge.bg-primary-custom {
             background-color: var(--primary) !important;
             color: white !important;
         }
@@ -124,14 +141,14 @@
             color: white !important;
         }
 
+        .badge.bg-danger {
+            background-color: #e74c3c !important;
+            color: white !important;
+        }
+
         .badge.bg-secondary {
             background-color: var(--gray-300) !important;
             color: var(--text-secondary) !important;
-        }
-
-        .badge.bg-info {
-            background-color: #3498db !important;
-            color: white !important;
         }
 
         /* Выпадающее меню */
@@ -440,9 +457,8 @@
             color: var(--text-secondary) !important;
         }
 
-        /* Границы */
-        .border {
-            border-color: var(--border) !important;
+        .text-primary-custom {
+            color: var(--primary) !important;
         }
 
         /* Скроллбар */
@@ -479,23 +495,6 @@
             }
         }
 
-        /* Утилиты */
-        .bg-white-custom {
-            background-color: var(--white);
-        }
-
-        .bg-primary-custom {
-            background-color: var(--primary);
-        }
-
-        .text-primary-custom {
-            color: var(--primary);
-        }
-
-        .border-primary-custom {
-            border-color: var(--primary);
-        }
-
         /* Анимации */
         @keyframes fadeIn {
             from {
@@ -510,41 +509,6 @@
 
         .fade-in {
             animation: fadeIn 0.3s ease forwards;
-        }
-
-        /* Дополнительные минималистичные элементы */
-        .divider {
-            height: 1px;
-            background-color: var(--border);
-            margin: 1.5rem 0;
-        }
-
-        .stat-card {
-            background-color: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -562,14 +526,14 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'problem_list' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'problem_list' %}active{% endif %}" href="{% url 'problem_list' %}">
                             <i class="fas fa-list"></i>
                             Проблемы
                         </a>
                     </li>
                     {% if user.is_superuser %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'employee_list' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}" href="{% url 'employee_list' %}">
                                 <i class="fas fa-users"></i>
                                 Сотрудники
                             </a>
@@ -579,7 +543,7 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'problem_create' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'problem_create' %}active{% endif %}" href="{% url 'problem_create' %}">
                                 <i class="fas fa-plus-circle"></i>
                                 Новая
                             </a>
@@ -589,7 +553,7 @@
                                 <i class="fas fa-user-circle"></i>
                                 {{ user.username }}
                                 {% if user.is_superuser %}
-                                    <span class="badge bg-danger ms-1">Админ</span>
+                                    <span class="badge bg-primary-custom ms-1">Админ</span>
                                 {% elif user.is_staff %}
                                     <span class="badge bg-warning ms-1">Ред</span>
                                 {% endif %}
@@ -621,7 +585,7 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}" href="{% url 'login' %}">
                                 <i class="fas fa-sign-in-alt"></i>
                                 Вход
                             </a>
@@ -653,14 +617,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Анимация появления
             const animatedElements = document.querySelectorAll('.card, .alert, .stat-card');
             animatedElements.forEach((el, index) => {
                 el.classList.add('fade-in');
                 el.style.animationDelay = `${index * 0.05}s`;
             });
 
-            // Авто-скрытие алертов
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
                 setTimeout(() => {

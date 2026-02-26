@@ -1,126 +1,403 @@
 {% extends 'helpdesk/base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Управление сотрудниками</h1>
-    <a href="{% url 'employee_create' %}" class="btn btn-primary">
-        <i class="bi bi-person-plus"></i> Добавить сотрудника
-    </a>
-</div>
+<div class="container-fluid px-4">
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-users me-2 text-primary-custom"></i>
+            Управление сотрудниками
+        </h1>
+        <a href="{% url 'employee_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Добавить сотрудника
+        </a>
+    </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Имя пользователя</th>
-                        <th>ФИО</th>
-                        <th>Email</th>
-                        <th>Дата регистрации</th>
-                        <th>Статус</th>
-                        <th>Права</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for employee in employees %}
-                    <tr>
-                        <td>{{ employee.id }}</td>
-                        <td><strong>{{ employee.username }}</strong></td>
-                        <td>{{ employee.last_name }} {{ employee.first_name }}</td>
-                        <td>{{ employee.email }}</td>
-                        <td>{{ employee.date_joined|date:"d.m.Y H:i" }}</td>
-                        <td>
-                            {% if employee.is_active %}
-                                <span class="badge bg-success">Активен</span>
-                            {% else %}
-                                <span class="badge bg-danger">Неактивен</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if employee.is_superuser %}
-                                <span class="badge bg-danger">Администратор</span>
-                            {% elif employee.is_staff %}
-                                <span class="badge bg-warning text-dark">Редактор</span>
-                            {% else %}
-                                <span class="badge bg-info">Пользователь</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="{% url 'employee_edit' employee.pk %}" 
-                                   class="btn btn-outline-primary" 
-                                   title="Редактировать">
-                                    ✏️
-                                </a>
-                                
-                                {% if employee.is_active %}
-                                    <a href="{% url 'employee_toggle_active' employee.pk %}" 
-                                       class="btn btn-outline-warning"
-                                       title="Деактивировать"
-                                       onclick="return confirm('Деактивировать сотрудника {{ employee.username }}?')">
-                                        🔒
+    <!-- Статистика -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(128, 0, 32, 0.1);">
+                    <i class="fas fa-users" style="color: var(--primary);"></i>
+                </div>
+                <div class="stat-details">
+                    <span class="stat-value">{{ employees.count }}</span>
+                    <span class="stat-label">Всего</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1);">
+                    <i class="fas fa-user-check" style="color: #27ae60;"></i>
+                </div>
+                <div class="stat-details">
+                    <span class="stat-value">{{ active_count }}</span>
+                    <span class="stat-label">Активных</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(241, 196, 15, 0.1);">
+                    <i class="fas fa-user-edit" style="color: #f1c40f;"></i>
+                </div>
+                <div class="stat-details">
+                    <span class="stat-value">{{ staff_count }}</span>
+                    <span class="stat-label">Редакторов</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(52, 152, 219, 0.1);">
+                    <i class="fas fa-user-shield" style="color: #3498db;"></i>
+                </div>
+                <div class="stat-details">
+                    <span class="stat-value">{{ superuser_count }}</span>
+                    <span class="stat-label">Админов</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица сотрудников -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2 text-primary-custom"></i>
+                Список сотрудников
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>ФИО</th>
+                            <th>Email</th>
+                            <th>Дата регистрации</th>
+                            <th>Статус</th>
+                            <th>Права</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td class="fw-semibold">{{ employee.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div>
+                                        <strong>{{ employee.username }}</strong>
+                                        {% if employee == request.user %}
+                                            <span class="badge bg-primary-custom ms-1">Вы</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ employee.last_name }} {{ employee.first_name|default:"—" }}</td>
+                            <td>
+                                {% if employee.email %}
+                                    <a href="mailto:{{ employee.email }}" class="email-link">
+                                        {{ employee.email }}
                                     </a>
                                 {% else %}
-                                    <a href="{% url 'employee_toggle_active' employee.pk %}" 
-                                       class="btn btn-outline-success"
-                                       title="Активировать">
-                                        🔓
-                                    </a>
+                                    <span class="text-muted">—</span>
                                 {% endif %}
-                                
-                                {% if not employee.is_superuser and employee != request.user %}
-                                    <a href="{% url 'employee_delete' employee.pk %}" 
-                                       class="btn btn-outline-danger"
-                                       title="Удалить">
-                                        🗑️
-                                    </a>
+                            </td>
+                            <td>
+                                <small>{{ employee.date_joined|date:"d.m.Y H:i" }}</small>
+                            </td>
+                            <td>
+                                {% if employee.is_active %}
+                                    <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Неактивен</span>
                                 {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                            <td>
+                                {% if employee.is_superuser %}
+                                    <span class="badge bg-primary-custom">Админ</span>
+                                {% elif employee.is_staff %}
+                                    <span class="badge bg-warning text-dark">Редактор</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Пользователь</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'employee_edit' employee.pk %}"
+                                       class="action-btn"
+                                       title="Редактировать"
+                                       style="color: var(--primary);">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    {% if employee.is_active %}
+                                        <a href="{% url 'employee_toggle_active' employee.pk %}"
+                                           class="action-btn"
+                                           title="Деактивировать"
+                                           style="color: #f1c40f;"
+                                           onclick="return confirm('Деактивировать сотрудника {{ employee.username }}?')">
+                                            <i class="fas fa-ban"></i>
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'employee_toggle_active' employee.pk %}"
+                                           class="action-btn"
+                                           title="Активировать"
+                                           style="color: #27ae60;">
+                                            <i class="fas fa-check-circle"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    {% if not employee.is_superuser and employee != request.user %}
+                                        <a href="{% url 'employee_delete' employee.pk %}"
+                                           class="action-btn"
+                                           title="Удалить"
+                                           style="color: #e74c3c;"
+                                           onclick="return confirm('Удалить сотрудника {{ employee.username }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Нет сотрудников</h5>
+                                <a href="{% url 'employee_create' %}" class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus-circle me-2"></i>Добавить
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Статистика -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">Всего сотрудников</h5>
-                <p class="card-text display-6">{{ employees.count }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">Активных</h5>
-                <p class="card-text display-6">{{ employees.active.count }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">Редакторов</h5>
-                <p class="card-text display-6">{{ employees.staff.count }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title">Админов</h5>
-                <p class="card-text display-6">{{ employees.superuser.count }}</p>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+    :root {
+        --primary: #800020;
+        --primary-dark: #4a0012;
+        --white: #ffffff;
+        --gray-50: #fafafa;
+        --gray-100: #f5f5f5;
+        --gray-200: #eeeeee;
+        --gray-300: #e0e0e0;
+        --gray-400: #bdbdbd;
+        --gray-500: #9e9e9e;
+        --border: #e0e0e0;
+        --text-primary: #212121;
+        --text-secondary: #757575;
+    }
+
+    /* Обычная прокрутка */
+    body {
+        overflow-y: auto !important;
+    }
+
+    .container-fluid {
+        overflow: visible !important;
+    }
+
+    /* Карточки статистики */
+    .stat-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 5px 20px rgba(128, 0, 32, 0.08);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+
+    .stat-value {
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Карточка с таблицей */
+    .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+    }
+
+    /* Таблица */
+    .table {
+        margin: 0;
+    }
+
+    .table thead th {
+        background-color: var(--gray-50);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        padding: 1rem 1rem;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-primary);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(128, 0, 32, 0.02);
+    }
+
+    /* Аватар */
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: rgba(128, 0, 32, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    /* Email ссылка */
+    .email-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .email-link:hover {
+        color: var(--primary);
+    }
+
+    /* Кнопки действий */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        background-color: transparent;
+        border: 1px solid transparent;
+    }
+
+    .action-btn:hover {
+        background-color: var(--gray-100);
+        transform: translateY(-1px);
+    }
+
+    /* Бейджи */
+    .badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .badge.bg-primary-custom {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .badge.bg-success {
+        background-color: #27ae60 !important;
+        color: white;
+    }
+
+    .badge.bg-danger {
+        background-color: #e74c3c !important;
+        color: white;
+    }
+
+    .badge.bg-warning {
+        background-color: #f1c40f !important;
+        color: #212121;
+    }
+
+    .badge.bg-secondary {
+        background-color: var(--gray-300) !important;
+        color: var(--text-secondary);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .stat-card {
+            padding: 1rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+        }
+
+        .table td, .table th {
+            white-space: nowrap;
+        }
+
+        .action-buttons {
+            justify-content: flex-start;
+        }
+    }
+</style>
 {% endblock %}
